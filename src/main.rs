@@ -1,32 +1,42 @@
-use std::env;
+mod commands;
 
-use serenity::{
-    model::{channel::Message, gateway::Ready},
-    prelude::*,
+use serenity::client::Client;
+use serenity::model::gateway::Ready;
+use serenity::prelude::{EventHandler, Context};
+use serenity::framework::standard::{
+    StandardFramework,
+    macros::group
 };
 
-struct ResponseHandler;
+use commands::{
+    meta::*,
+    adventure::*,
+};
 
-impl EventHandler for ResponseHandler {
-    fn message(&self, context: Context, message: Message) {
-        if message.content == "!ping" {
-            if let Err(why) = message.channel_id.say(&context.http, "Pong!") {
-                println!("Error sending message: {:?}", why);
-            }
-        }
-    }
+#[group]
+#[commands(ping, adventure)]
+struct General;
 
-    fn ready(&self, _context: Context, ready: Ready) {
-        println!("{} is connected!", ready.user.name);
+struct Handler;
+
+impl EventHandler for Handler {
+    fn ready(&self, _:Context, ready: Ready) {
+        println!("{} is connected", ready.user.name);
     }
 }
+
+
 
 fn main() {
     let token = include_str!("API.KEY");
 
-    let mut client = Client::new(&token, ResponseHandler).expect("Error creating client");
+    let mut client = Client::new(&token, Handler).expect("Error Creating Client.");
+
+    client.with_framework(StandardFramework::new()
+                        .configure(|c| c.prefix("!"))
+                        .group(&GENERAL_GROUP));
 
     if let Err(why) = client.start() {
-        println!("Client Error: {:?}", why);
+        println!("An error occurred while running the client: {:?}", why);
     }
 }
