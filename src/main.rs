@@ -11,6 +11,7 @@ use serenity::framework::standard::{
 use commands::{
     meta::*,
     adventure::*,
+    hr::*,
 };
 
 #[group]
